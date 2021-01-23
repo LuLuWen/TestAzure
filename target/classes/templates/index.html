@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:th="http://www/thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<title>Insert title here</title>
+
+<script
+  src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>	
+
+</head>
+<body>
+
+<button class="btn  btn-primary" name="list" value="列表" >列表</button>
+<!--  <button class="btn  btn-danger" name="Insert" value="新增" >新增</button>  -->
+<div align="center">
+	<h1>Enter New Member</h1>
+	<br>
+	
+	<form id="form" action="/insert"  method="post">
+		<table border="1" cellpadding="10">
+			<tr>
+				<td>Email:</td>
+				<td><input type="text" name="email"></td>
+			</tr>
+			<tr>
+				<td>Cellphone:</td>
+				<td><input type="text" name="cellphone"></td>
+			</tr>
+			<tr>
+				<td>Password:</td>
+				<td><input type="text" name="password"></td>
+			</tr>
+			<tr>
+				<td>Address:</td>
+				<td><input type="text" name="address"></td>
+			</tr>
+			<tr>
+				<td colspan="2"><button type="button" onclick="insert()">Save</button></td>
+			</tr>
+		</table>
+	
+	</form>
+	
+</div>
+<br>
+<script>
+var zone;
+var temp;
+var m;
+$(document).ready(function(){
+  $(".btn-primary").click(function(){
+	//$( ".loader" ).show( 2000 );
+	type=$(this).attr("value");	
+	//console.log("Z:" + type);
+	$.get("http://localhost:8080/member/listAll",function(result){
+		console.log(result);
+		temp = result;
+        document.getElementById("body1").innerHTML = "";
+		document.getElementById("body1").innerHTML += '<table border ="1" class="table table-striped"><thead class="thead-dark"><tr><th scope="col">id</th><th scope="col">email</th><th scope="col">cellphone</th><th scope="col">password</th><th scope="col">address</th></tr></thead></table>';
+		for(m = 0; m < result.length; m++)			
+		{	
+			document.getElementById("body1").innerHTML += '<table border ="1" class="table table-striped"><tbody class="table-striped"><tr><th scope="row">'+ result[m].id + '</th><td>' + result[m].email + '</td><td>' + result[m].cellphone + '</td><td>' + result[m].password + '</td><td>' + result[m].address + '</td></tr></tbody></table><button id="'+ result[m].id +'" onclick="deleteMember(id)" class="btn  btn-secondary delete" name="delete" value="'+ result[m].id +'">刪除</button> <button id="'+ result[m].id +'" onclick="editMember(id)" class="btn  btn-secondary edit" name="edit" value="'+ result[m].id +'">修改</button></br></br>';
+		}
+	});
+  });
+});
+/*$(document).ready(function(){
+	  $(".btn-danger").click(function(){
+		        document.getElementById("body1").innerHTML = "";
+		        document.getElementById("body1").innerHTML += '<div align="center"><h1>Enter New Member</h1><br><form action="#" th:action="@{/insert}" th:object="${memberAccount}" method="post"><table border="1" cellpadding="10"><tr><td>Email:</td><td><input type="text" th:field="*{email}"></td></tr><tr><td>Cellphone:</td><td><input type="text" th:field="*{cellphone}"></td></tr><tr><td>Password:</td><td><input type="text" th:field="*{password}"></td></tr><tr><td>Address:</td><td><input type="text" th:field="*{address}"></td></tr><tr><td colspan="2"><button type="submit">Save</button></td></tr></table></form></div>';
+		  });
+		});*/
+function arrayToJson(formArray){
+		var dataArray = {};
+			  $.each(formArray,function(){
+			    if(dataArray[this.name]){
+			      	if(!dataArray[this.name].push){
+			        	dataArray[this.name] = [dataArray[this.name]];
+			      	}
+			      	dataArray[this.name].push(this.value || '');
+			    }else{
+			      	dataArray[this.name] = this.value || '';
+			    }
+			  });
+		return JSON.stringify(dataArray);
+}		
+function insert(){
+		var formArray = $("#form").serializeArray();	
+		//console.log(formArray);
+		var data = arrayToJson(formArray);
+		$.ajax({
+            type:"POST",                    
+            url: "/insert",        
+            data: data,          
+            dataType: "json",
+            contentType:"application/json;charset=UTF-8",
+            headers: {
+     			Accept: "application/json",
+  			},
+            success : function(result){
+            	window.alert("新增成功!!!");
+                document.getElementById("body1").innerHTML = "";
+            	listAllMember();
+            }	
+	   });
+}
+function deleteMember(id){
+    	$.ajax({
+	             type:"DELETE",                    
+	             url: "/member/delete/" + id ,        
+	             //data: {id : $(this).attr("value")},	              
+	             //Ajax成功後執行的function，response為回傳的值
+	             success : function(result){
+	                 //在id=ajaxResponse的fieldset中顯示Ajax的回傳值
+	                 window.alert("刪除成功!!!");
+	                 document.getElementById("body1").innerHTML = "";
+	            	 listAllMember();       
+	             }	
+		});
+}
+function listAllMember(){
+	$.ajax({
+        type:"GET",                    
+        url: "/member/listAll",        	              
+        success : function(result){
+        	document.getElementById("body1").innerHTML += '<table border ="1" class="table table-striped"><thead class="thead-dark"><tr><th scope="col">id</th><th scope="col">email</th><th scope="col">cellphone</th><th scope="col">password</th><th scope="col">address</th></tr></thead></table>';
+    		for(m = 0; m < result.length; m++)			
+    		{	
+    			document.getElementById("body1").innerHTML += '<table border ="1" class="table table-striped"><tbody class="table-striped"><tr><th scope="row">'+ result[m].id + '</th><td>' + result[m].email + '</td><td>' + result[m].cellphone + '</td><td>' + result[m].password + '</td><td>' + result[m].address + '</td></tr></tbody></table><button id="'+ result[m].id +'" onclick="deleteMember(id)" class="btn  btn-secondary delete" name="delete" value="'+ result[m].id +'">刪除</button> <button id="'+ result[m].id +'" onclick="editMember(id)" class="btn  btn-secondary edit" name="edit" value="'+ result[m].id +'">修改</button></br></br>';
+    		}
+    	}	
+	});
+}
+function editMember(id){
+	document.getElementById("body1").innerHTML = "";
+	$.ajax({
+        type:"GET",                    
+        url: "/member/listByID/" + id ,        
+        success : function(result){
+        	document.getElementById("body1").innerHTML += '<div align="center"><h1>Edit Member</h1><br><form id="form2" action="#" method="put"><table border="1" cellpadding="10"><tr><td>ID:</td><td><input type="text" placeholder="' + result.id + '" readonly="readonly"></td></tr><tr><td>Email:</td><td><input type="text" id="member_email" placeholder="' + result.email + '"></td></tr><tr><td>Cellphone:</td><td><input type="text" id="member_cellphone" placeholder="' + result.cellphone + '"></td></tr><tr><td>Password:</td><td><input type="text" id="member_password" placeholder="' + result.password + '"></td></tr><tr><td>Address:</td><td><input type="text" id="member_address" placeholder="' + result.address + '"></td></tr><tr><td colspan="2"><button id="'+ result.id +'" value="Submit" onclick="update(id)">Save</button></td></tr></table></form></div>'
+        }	
+	});
+}
+function update(id){
+	let dataJSON = {};
+    dataJSON["id"] = id;
+    dataJSON["email"] = $("#member_email").val();
+    dataJSON["cellphone"] = $("#member_cellphone").val();
+    dataJSON["password"] = $("#member_password").val();
+    dataJSON["address"] = $("#member_address").val();
+	
+    $.ajax({
+        type:"PUT",                    
+        url: "/member/update/" + id,        
+        data: JSON.stringify(dataJSON),          
+        //dataType: "json",
+        contentType:"application/json;charset=UTF-8",
+        headers: {
+ 			Accept: "application/json",
+			},
+        success : function(result){
+        	window.alert("修改成功!!!");
+            document.getElementById("body1").innerHTML = "";
+        	listAllMember();
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            console.log(xhr.status);
+            console.log(thrownError);
+        }
+   });
+}
+</script>
+<div id = "body1"></div>
+</body>
+</html>
